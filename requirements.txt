@@ -1,0 +1,14 @@
+# Web framework
+Django==6.1.1
+
+# WSGI server for production
+gunicorn==23.0.0
+
+# Serve collected static files from the app process
+whitenoise==6.11.0
+
+# Parse DATABASE_URL into DATABASES settings
+dj-database-url==3.0.1
+
+# PostgreSQL driver (psycopg 3)
+psycopg[binary]==3.2.10

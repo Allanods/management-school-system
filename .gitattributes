@@ -1,0 +1,6 @@
+# Deployment configuration must stay LF so it is parsed correctly on Linux.
+build.sh text eol=lf
+Procfile text eol=lf
+.python-version text eol=lf
+requirements.txt text eol=lf
+render.yaml text eol=lf

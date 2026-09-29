@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: school-management
+    runtime: python
+    plan: free
+    region: ohio
+    branch: main
+    repo: https://github.com/Allanods/management-school-system
+    buildCommand: bash build.sh
+    startCommand: gunicorn SchoolManagement.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --access-logfile - --error-logfile -
+    healthCheckPath: /accounts/login/
+    autoDeploy: true
+    autoDeployTrigger: commit
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: school-management.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://school-management.onrender.com
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: school-management-db
+          property: connectionString
+      - key: DJANGO_SESSION_COOKIE_SECURE
+        value: "True"
+      - key: DJANGO_CSRF_COOKIE_SECURE
+        value: "True"
+      - key: DJANGO_SECURE_HSTS_SECONDS
+        value: "0"
+
+databases:
+  - name: school-management-db
+    plan: free
+    region: ohio
+    version: "18"
+    databaseName: school_management

@@ -46,9 +46,13 @@ ALLOWED_HOSTS = [
 ]
 
 # Comma-separated origins accepted for unsafe requests (e.g. HTTPS behind a proxy).
+# Both CSRF_TRUSTED_ORIGINS and DJANGO_CSRF_TRUSTED_ORIGINS are accepted.
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+    for origin in ','.join(
+        os.environ.get(name, '')
+        for name in ('CSRF_TRUSTED_ORIGINS', 'DJANGO_CSRF_TRUSTED_ORIGINS')
+    ).split(',')
     if origin.strip()
 ]
 
@@ -76,6 +80,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -108,12 +113,27 @@ WSGI_APPLICATION = 'SchoolManagement.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Local development uses SQLite. Production (Render) sets DATABASE_URL to a
+# PostgreSQL connection string, which takes precedence when present.
+DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
+
+if DATABASE_URL:
+    import dj_database_url
+
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        ),
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -156,6 +176,23 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise serves collected static files from the app process, so no separate
+# CDN is required. Compression is enabled; the manifest variant is intentionally
+# not used so a missing asset reference can never raise at request time.
+WHITENOISE_AUTOREFRESH = DEBUG
+WHITENOISE_USE_FINDERS = DEBUG
+WHITENOISE_MAX_AGE = 0 if DEBUG else 60 * 60 * 24 * 30
+
+if not DEBUG:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+        },
+    }
+
 # Authentication
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -195,3 +232,10 @@ SECURE_SSL_REDIRECT = _env_bool('DJANGO_SECURE_SSL_REDIRECT', False)
 SESSION_COOKIE_SECURE = _env_bool('DJANGO_SESSION_COOKIE_SECURE', False)
 CSRF_COOKIE_SECURE = _env_bool('DJANGO_CSRF_COOKIE_SECURE', False)
 SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_SECURE_HSTS_SECONDS', '0'))
+
+# Render terminates TLS and forwards the original scheme in X-Forwarded-Proto.
+# Trusting that header keeps request.is_secure() and CSRF origin checks correct
+# behind the proxy. It is only enabled outside DEBUG so local development is
+# unaffected.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
