@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Student Fee Accounts</h1>
+      <p class="text-subtle mb-0">Balances are always derived from charges minus paid.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'fees:structures' %}" class="btn btn-outline-primary">
+        <i class="bi bi-journal-text me-1"></i>Fee Structures
+      </a>
+      <a href="{% url 'fees:home' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
+      </a>
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'fees:generate' %}" class="card card-body-section mb-3">
+    {% csrf_token %}
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label">Class stream</label>
+          <select name="class_stream" class="form-select">
+            <option value="">Select a class stream</option>
+            {% for opt in class_stream_options %}
+              <option value="{{ opt.pk }}">{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Term</label>
+          <select name="term" class="form-select">
+            <option value="">Select a term</option>
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}">{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-magic me-1"></i>Generate Student Charges
+          </button>
+        </div>
+      </div>
+      <div class="alert alert-light border mt-3 py-2 small mb-0">
+        <i class="bi bi-info-circle me-1"></i>
+        Creates a charge for each active student in the stream from the class's
+        active fee structures. Safe to run repeatedly — it never duplicates.
+      </div>
+    </div>
+  </form>
+
+  <form method="post" action="{% url 'fees:account_lookup' %}" class="card card-body-section mb-3">
+    {% csrf_token %}
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label">Student</label>
+          <input type="text" name="student_q" class="form-control" placeholder="Search by admission no or name">
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Term</label>
+          <select name="term" class="form-select">
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if current_term and opt.pk == current_term.pk %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <button type="submit" class="btn btn-outline-primary">Open account</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="id_q">Search student</label>
+          <input type="text" name="q" id="id_q" class="form-control" value="{{ filters.q }}" placeholder="Name or adm. no">
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="id_term">Term</label>
+          <select name="term" id="id_term" class="form-select">
+            <option value="">All terms</option>
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if filters.term == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="id_class_stream">Class Stream</label>
+          <select name="class_stream" id="id_class_stream" class="form-select">
+            <option value="">All streams</option>
+            {% for opt in class_stream_options %}
+              <option value="{{ opt.pk }}" {% if filters.class_stream == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="id_outstanding">Balance</label>
+          <select name="outstanding" id="id_outstanding" class="form-select">
+            <option value="">All</option>
+            <option value="1" {% if filters.outstanding == '1' %}selected{% endif %}>Not settled</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-1 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel"></i>
+          </button>
+          <a href="{% url 'fees:accounts' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if page_obj.object_list %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Admission No</th>
+                <th>Student</th>
+                <th>Class Stream</th>
+                <th>Term</th>
+                <th class="text-end">Charged</th>
+                <th class="text-end">Paid</th>
+                <th class="text-end">Balance</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for account in page_obj %}
+                <tr>
+                  <td>{{ account.student.admission_no }}</td>
+                  <td class="fw-semibold">{{ account.student.full_name }}</td>
+                  <td>{{ account.student.class_stream }}</td>
+                  <td>{{ account.term }}</td>
+                  <td class="text-end">KSh {{ account.charged|floatformat:2 }}</td>
+                  <td class="text-end">KSh {{ account.paid|floatformat:2 }}</td>
+                  <td class="text-end">
+                    {% if account.owed > 0 %}
+                      <span class="text-danger fw-semibold">KSh {{ account.owed|floatformat:2 }}</span>
+                    {% elif account.owed < 0 %}
+                      <span class="text-success fw-semibold">Credit KSh {{ account.owed|floatformat:2 }}</span>
+                    {% else %}
+                      <span class="text-subtle">Settled</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'fees:account_detail' account.pk %}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-receipt"></i> Statement
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No fee accounts match the current filters.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

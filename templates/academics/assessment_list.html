@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Assessments</h1>
+      <p class="text-subtle mb-0">{{ page_obj.paginator.count }} assessment{{ page_obj.paginator.count|pluralize }}</p>
+    </div>
+    <a href="{% url 'academics:assessment_add' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Create Assessment
+    </a>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="id_q">Search</label>
+          <input type="text" name="q" id="id_q" class="form-control" value="{{ filters.q }}" placeholder="Name">
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="id_term">Term</label>
+          <select name="term" id="id_term" class="form-select">
+            <option value="">All terms</option>
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if filters.term == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="id_class_stream">Class Stream</label>
+          <select name="class_stream" id="id_class_stream" class="form-select">
+            <option value="">All streams</option>
+            {% for opt in class_stream_options %}
+              <option value="{{ opt.pk }}" {% if filters.class_stream == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="id_subject">Subject</label>
+          <select name="subject" id="id_subject" class="form-select">
+            <option value="">All subjects</option>
+            {% for opt in subject_options %}
+              <option value="{{ opt.pk }}" {% if filters.subject == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="id_status">Status</label>
+          <select name="status" id="id_status" class="form-select">
+            <option value="">All</option>
+            <option value="DRAFT" {% if filters.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+            <option value="PUBLISHED" {% if filters.status == 'PUBLISHED' %}selected{% endif %}>Published</option>
+          </select>
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'academics:assessment_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if assessments %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Assessment</th>
+                <th>Type</th>
+                <th>Class Stream</th>
+                <th>Subject</th>
+                <th>Term</th>
+                <th class="text-end">Max</th>
+                <th>Status</th>
+                <th class="text-end">Marks</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for assessment in assessments %}
+                <tr>
+                  <td class="fw-semibold">
+                    <a href="{% url 'academics:assessment_detail' assessment.pk %}">{{ assessment.name }}</a>
+                  </td>
+                  <td>{{ assessment.get_assessment_type_display }}</td>
+                  <td>{{ assessment.class_stream }}</td>
+                  <td>{{ assessment.subject.name }}</td>
+                  <td>{{ assessment.term }}</td>
+                  <td class="text-end">{{ assessment.max_marks }}</td>
+                  <td>
+                    {% if assessment.status == 'PUBLISHED' %}
+                      <span class="badge bg-success">Published</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">Draft</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">{{ assessment.marks_count }}</td>
+                  <td class="text-end text-nowrap">
+                    <a href="{% url 'academics:assessment_edit' assessment.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No assessments found. Create an assessment to begin.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

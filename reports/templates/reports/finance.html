@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Finance Report - SchoolManager{% endblock %}
+
+{% block content %}
+  <style>
+    @media print {
+      .app-sidebar, .app-topbar, .no-print { display: none !important; }
+      .app-main { padding: 0 !important; }
+    }
+  </style>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print">
+    <div>
+      <h1 class="page-title mb-1">Finance Report</h1>
+      <p class="text-subtle mb-0">Charges attributed to this class's students for the term on record.</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if report %}
+        <button class="btn btn-outline-secondary" onclick="window.print()">
+          <i class="bi bi-printer me-1"></i>Print
+        </button>
+        <a href="{% url 'reports:finance_csv' %}?{% if filters.term %}term={{ filters.term }}&{% endif %}class_stream={{ class_stream.pk }}"
+           class="btn btn-outline-primary">
+          <i class="bi bi-download me-1"></i>CSV
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3 no-print">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_term">Term</label>
+          <select name="term" id="id_term" class="form-select">
+            <option value="">Most recent</option>
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if filters.term == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_class_stream">Class Stream</label>
+          <select name="class_stream" id="id_class_stream" class="form-select">
+            {% for opt in class_stream_options %}
+              <option value="{{ opt.pk }}" {% if class_stream and opt.pk == class_stream.pk %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'reports:finance' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if report %}
+    <div class="mb-3">
+      <strong>{{ term }}</strong> · {{ class_stream }} ·
+      {{ report.rows|length }} student{{ report.rows|length|pluralize }}
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Charged</div>
+            <div class="fs-4 fw-semibold">{{ report.totals.charged|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Paid</div>
+            <div class="fs-4 fw-semibold text-success">{{ report.totals.paid|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Outstanding</div>
+            <div class="fs-4 fw-semibold text-danger">{{ report.totals.owed|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Accounts</div>
+            <div class="fs-4 fw-semibold">
+              {{ report.totals.owing_count }} owing ·
+              {{ report.totals.paid_full_count }} paid full
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section">
+      <div class="card-header card-body-section">
+        <strong>Students</strong>
+      </div>
+      <div class="card-body p-0">
+        {% if report.rows %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Adm No</th>
+                  <th>Student</th>
+                  <th>Status</th>
+                  <th class="text-end">Charged (KSh)</th>
+                  <th class="text-end">Paid (KSh)</th>
+                  <th class="text-end">Owed (KSh)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in report.rows %}
+                  <tr>
+                    <td>{{ row.student.admission_no }}</td>
+                    <td>{{ row.student.full_name }}</td>
+                    <td>
+                      {% if row.owed > 0 %}
+                        <span class="badge bg-danger">Owing</span>
+                      {% elif row.owed < 0 %}
+                        <span class="badge bg-info text-dark">In credit</span>
+                      {% else %}
+                        <span class="badge bg-success">Settled</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-end">{{ row.charged|floatformat:2 }}</td>
+                    <td class="text-end">{{ row.paid|floatformat:2 }}</td>
+                    <td class="text-end">
+                      {% if row.owed > 0 %}
+                        <span class="text-danger">{{ row.owed|floatformat:2 }}</span>
+                      {% else %}
+                        <span class="text-subtle">{{ row.owed|floatformat:2 }}</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          {% include 'partials/empty_state.html' with message='No fee activity is on record for this class in this term.' %}
+        {% endif %}
+      </div>
+    </div>
+  {% else %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% include 'partials/empty_state.html' with message='Select a term and a class stream to generate the report.' %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

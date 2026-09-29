@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Class Streams - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Class Streams</h1>
+      <p class="text-subtle mb-0">
+        {{ page_obj.paginator.count }} class stream{{ page_obj.paginator.count|pluralize }}
+      </p>
+    </div>
+    <a href="{% url 'structure:classstream_add' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Add Class Stream
+    </a>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+          <label class="form-label" for="id_school_class">Class</label>
+          <select name="school_class" id="id_school_class" class="form-select">
+            <option value="">All classes</option>
+            {% for opt in class_options %}
+              <option value="{{ opt.pk }}" {% if filters.school_class == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <label class="form-label" for="id_stream">Stream</label>
+          <select name="stream" id="id_stream" class="form-select">
+            <option value="">All streams</option>
+            {% for opt in stream_options %}
+              <option value="{{ opt.pk }}" {% if filters.stream == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_class_teacher">Class teacher</label>
+          <select name="class_teacher" id="id_class_teacher" class="form-select">
+            <option value="">Any</option>
+            {% for opt in teacher_options %}
+              <option value="{{ opt.pk }}" {% if filters.class_teacher == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt.full_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'structure:classstream_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if class_streams %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Class Stream</th>
+                <th>Class Teacher</th>
+                <th>Subjects</th>
+                <th>Students</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cs in class_streams %}
+                <tr>
+                  <td class="fw-semibold">{{ cs }}</td>
+                  <td>{{ cs.class_teacher.full_name|default:"—" }}</td>
+                  <td>{{ cs.subject_count }}</td>
+                  <td>{{ cs.student_count }}</td>
+                  <td class="text-end text-nowrap">
+                    <a href="{% url 'structure:classstream_detail' cs.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'structure:classstream_edit' cs.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No class streams found. Create a class stream by combining a class and a stream.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

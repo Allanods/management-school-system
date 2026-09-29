@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ assessment.name }}</h1>
+      <p class="text-subtle mb-0">{{ assessment.get_assessment_type_display }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if can_enter_marks %}
+        <a href="{% url 'academics:mark_entry' assessment.pk %}" class="btn btn-primary">
+          <i class="bi bi-pencil-square me-1"></i>Enter / Edit Marks
+        </a>
+      {% endif %}
+      {% if user_profile.is_admin %}
+        <a href="{% url 'academics:assessment_edit' assessment.pk %}" class="btn btn-outline-secondary">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Class stream</div>
+          <div class="fs-6 fw-semibold">{{ assessment.class_stream }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Subject</div>
+          <div class="fs-6 fw-semibold">{{ assessment.subject.name }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Term</div>
+          <div class="fs-6 fw-semibold">{{ assessment.term }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Status</div>
+          {% if assessment.status == 'PUBLISHED' %}
+            <span class="badge bg-success">Published</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Draft</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-body-section mb-3">
+    <div class="card-body">
+      <div class="row text-center">
+        <div class="col-6 col-md-3">
+          <div class="text-subtle small">Max marks</div>
+          <div class="fs-5 fw-semibold">{{ assessment.max_marks }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="text-subtle small">Students scored</div>
+          <div class="fs-5 fw-semibold">{{ results.count }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="text-subtle small">Average score</div>
+          <div class="fs-5 fw-semibold">{{ results.average|floatformat:2 }}</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="text-subtle small">Average %</div>
+          <div class="fs-5 fw-semibold">{{ results.average_percent|floatformat:1 }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if results.rows %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Admission No</th>
+                <th>Student</th>
+                <th class="text-end">Scored</th>
+                <th class="text-end">Max</th>
+                <th class="text-end">%</th>
+                <th class="text-center">Grade</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in results.rows %}
+                <tr>
+                  <td>{{ row.mark.student.admission_no }}</td>
+                  <td>{{ row.mark.student.full_name }}</td>
+                  <td class="text-end fw-semibold">{{ row.mark.scored }}</td>
+                  <td class="text-end">{{ assessment.max_marks }}</td>
+                  <td class="text-end">{{ row.percent|floatformat:1 }}%</td>
+                  <td class="text-center">
+                    {% if row.grade %}
+                      <span class="badge bg-primary">{{ row.grade.label }}</span>
+                    {% else %}
+                      <span class="text-subtle">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No marks recorded yet. Use "Enter / Edit Marks" to begin.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

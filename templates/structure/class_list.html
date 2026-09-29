@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Classes - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Classes / Forms</h1>
+      <p class="text-subtle mb-0">
+        {{ page_obj.paginator.count }} class{{ page_obj.paginator.count|pluralize }}
+      </p>
+    </div>
+    <a href="{% url 'structure:class_add' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Add Class
+    </a>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="id_q">Search</label>
+          <input type="text" name="q" id="id_q" class="form-control"
+                 value="{{ filter_q }}" placeholder="Search by class name">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="id_is_active">Status</label>
+          <select name="is_active" id="id_is_active" class="form-select">
+            <option value="">All</option>
+            <option value="1" {% if filter_status == '1' %}selected{% endif %}>Active</option>
+            <option value="0" {% if filter_status == '0' %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'structure:class_list' %}" class="btn btn-outline-secondary" title="Clear filters">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if classes %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Streams</th>
+                <th>Students</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for school_class in classes %}
+                <tr>
+                  <td class="fw-semibold">{{ school_class.name }}</td>
+                  <td>{{ school_class.stream_count }}</td>
+                  <td>{{ school_class.student_count }}</td>
+                  <td>
+                    {% if school_class.is_active %}
+                      <span class="badge rounded-pill bg-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge rounded-pill bg-soft-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end text-nowrap">
+                    <a href="{% url 'structure:class_detail' school_class.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'structure:class_edit' school_class.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No classes found. Try adjusting your filters or add a new class.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

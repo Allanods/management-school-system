@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Academics Overview</h1>
+      <p class="text-subtle mb-0">Periods, assessments, marks and performance.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'academics:year_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add Year
+      </a>
+      <a href="{% url 'academics:assessment_add' %}" class="btn btn-outline-primary">
+        <i class="bi bi-pencil-square me-1"></i>Create Assessment
+      </a>
+      <a href="{% url 'academics:gradeband_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-award me-1"></i>Grade Bands
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Current year</div>
+          <div class="fs-5 fw-semibold">{{ current_year.name|default:'None set' }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Current term</div>
+          <div class="fs-5 fw-semibold">{{ current_term|default:'None set' }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Assessments</div>
+          <div class="fs-5 fw-semibold">{{ assessment_count }} total / {{ published_count }} published</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Periods</div>
+          <div class="fs-5 fw-semibold">{{ year_count }} years / {{ term_count }} terms</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-7">
+      <div class="card card-body-section">
+        <div class="card-header card-body-section d-flex justify-content-between align-items-center">
+          <strong>Recent assessments</strong>
+          <a href="{% url 'academics:assessment_list' %}" class="small">Manage all</a>
+        </div>
+        <div class="card-body p-0">
+          {% if recent_assessments %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Assessment</th>
+                    <th>Term</th>
+                    <th>Class Stream</th>
+                    <th>Subject</th>
+                    <th class="text-end">Max</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for assessment in recent_assessments %}
+                    <tr>
+                      <td>
+                        <a href="{% url 'academics:assessment_detail' assessment.pk %}" class="fw-semibold">
+                          {{ assessment.name }}
+                        </a>
+                      </td>
+                      <td>{{ assessment.term }}</td>
+                      <td>{{ assessment.class_stream }}</td>
+                      <td>{{ assessment.subject.name }}</td>
+                      <td class="text-end">{{ assessment.max_marks }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            {% include 'partials/empty_state.html' with message='No assessments yet. Create one to begin.' %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="card card-body-section">
+        <div class="card-header card-body-section d-flex justify-content-between align-items-center">
+          <strong>Academic years</strong>
+          <a href="{% url 'academics:year_list' %}" class="small">Manage all</a>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for year in years %}
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span>{{ year.name }}</span>
+                {% if year.is_current %}
+                  <span class="badge bg-success">Current</span>
+                {% endif %}
+              </li>
+            {% empty %}
+              <li class="list-group-item px-0 text-subtle">No academic years yet.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Subjects - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Subjects</h1>
+      <p class="text-subtle mb-0">
+        {{ page_obj.paginator.count }} subject{{ page_obj.paginator.count|pluralize }}
+      </p>
+    </div>
+    <a href="{% url 'structure:subject_add' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Add Subject
+    </a>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="id_q">Search</label>
+          <input type="text" name="q" id="id_q" class="form-control"
+                 value="{{ filter_q }}" placeholder="Search by name or code">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="id_is_active">Status</label>
+          <select name="is_active" id="id_is_active" class="form-select">
+            <option value="">All</option>
+            <option value="1" {% if filter_status == '1' %}selected{% endif %}>Active</option>
+            <option value="0" {% if filter_status == '0' %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'structure:subject_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if subjects %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Code</th>
+                <th>Teacher Assignments</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for subject in subjects %}
+                <tr>
+                  <td class="fw-semibold">{{ subject.name }}</td>
+                  <td class="text-nowrap">{{ subject.code|default:"—" }}</td>
+                  <td>{{ subject.assignment_count }}</td>
+                  <td>
+                    {% if subject.is_active %}
+                      <span class="badge rounded-pill bg-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge rounded-pill bg-soft-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end text-nowrap">
+                    <a href="{% url 'structure:subject_edit' subject.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No subjects found. Try adjusting your filters or add a new subject.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

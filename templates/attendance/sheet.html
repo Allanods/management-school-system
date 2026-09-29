@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ class_stream }} - Attendance Sheet - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Attendance Sheet</h1>
+      <p class="text-subtle mb-0">{{ class_stream }}</p>
+    </div>
+    <a href="{% url 'attendance:take' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back to streams
+    </a>
+  </div>
+
+  {% if future %}
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle me-1"></i>
+      Attendance for future dates cannot be recorded. Select a date on or before today.
+    </div>
+  {% endif %}
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_date">Record date</label>
+          <input type="date" name="date" id="id_date" class="form-control"
+                 value="{{ date|date:'Y-m-d' }}" max="{{ date|date:'Y-m-d' }}">
+        </div>
+        <div class="col-12 d-flex gap-2">
+          <input type="hidden" name="class_stream" value="{{ class_stream.pk }}">
+          <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-clockwise me-1"></i>Load sheet
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="alert alert-primary d-flex flex-wrap gap-3 mb-3 align-items-center">
+    <div><strong class="text-uppercase small d-block">Class stream</strong>{{ class_stream }}</div>
+    <div><strong class="text-uppercase small d-block">Date</strong>{{ date|date:'D, d M Y' }}</div>
+    <div><strong class="text-uppercase small d-block">Present</strong><span class="text-success">{{ summary.counts.PRESENT }}</span></div>
+    <div><strong class="text-uppercase small d-block">Absent</strong><span class="text-danger">{{ summary.counts.ABSENT }}</span></div>
+    <div><strong class="text-uppercase small d-block">Late</strong>{{ summary.counts.LATE }}</div>
+    <div><strong class="text-uppercase small d-block">Excused</strong>{{ summary.counts.EXCUSED }}</div>
+    <div class="ms-auto"><strong class="text-uppercase small d-block">Attendance rate</strong>{{ summary.percent|floatformat:1 }}%</div>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+      <div class="alert alert-danger">
+        {% for error in formset.non_form_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="card card-body-section">
+      <div class="card-body p-0">
+        {% if rows %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Admission No</th>
+                  <th>Student</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for student, form in rows %}
+                  <tr>
+                    <td>{{ student.admission_no }}</td>
+                    <td class="fw-semibold">{{ student.full_name }}</td>
+                    <td>
+                      {{ form.student }}
+                      {{ form.status }}
+                      {% for error in form.status.errors %}
+                        <div class="text-danger small mt-1">
+                          <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                        </div>
+                      {% endfor %}
+                      {% for error in form.student.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                      {% endfor %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer card-body-section d-flex align-items-center justify-content-between">
+            <span class="text-subtle small">
+              {{ rows|length }} student{{ rows|length|pluralize }} · {{ summary.total }} recorded
+            </span>
+            <div class="d-flex gap-2">
+              <a href="{% url 'attendance:take' %}" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary px-4" {% if future %}disabled{% endif %}>
+                <i class="bi bi-check-lg me-1"></i>Save Attendance
+              </button>
+            </div>
+          </div>
+        {% else %}
+          {% include 'partials/empty_state.html' with message='No students in this class stream to record attendance for.' %}
+        {% endif %}
+      </div>
+    </div>
+  </form>
+{% endblock %}

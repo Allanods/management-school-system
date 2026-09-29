@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="page-title mb-0">{{ page_title }}</h1>
+    <a href="{% url 'students:list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Students
+    </a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="card card-body-section mb-3">
+      <div class="card-body">
+        <div class="alert alert-light border py-2 small mb-0">
+          <i class="bi bi-info-circle me-1"></i>
+          Moving a student splits their enrollment into two windows meeting at the
+          effective date. Earlier records (results, attendance, fee charges) stay
+          attributed to the student&rsquo;s class in that term. No data is deleted.
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.target_class_stream %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.effective_date %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.reason %}</div>
+          <div class="col-12">{% include 'partials/field.html' with field=form.note %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section">
+      <div class="card-header bg-transparent">
+        <span class="fw-semibold">Students to promote</span>
+        {% if request.GET.class_stream %}
+          <a href="{% url 'students:promote' %}" class="small ms-2">Show all classes</a>
+        {% endif %}
+      </div>
+      <div class="card-body p-0">
+        <div class="form-check form-switch px-3 pt-3">
+          <input class="form-check-input" type="checkbox" id="promote-select-all">
+          <label class="form-check-label small" for="promote-select-all">Select all listed students</label>
+        </div>
+        <div class="px-3 pt-1 pb-3" style="max-height: 420px; overflow-y: auto;">
+          {% if form.students.errors %}
+            <div class="text-danger small mb-2">{{ form.students.errors }}</div>
+          {% endif %}
+          {{ form.students }}
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-arrow-right-circle me-1"></i>Promote selected
+      </button>
+      <a href="{% url 'students:list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+
+  <script>
+    (function () {
+      var selectAll = document.getElementById('promote-select-all');
+      if (!selectAll) return;
+      var boxes = document.querySelectorAll('input[name="students"]');
+      selectAll.addEventListener('change', function () {
+        boxes.forEach(function (box) { box.checked = selectAll.checked; });
+      });
+    })();
+  </script>
+{% endblock %}

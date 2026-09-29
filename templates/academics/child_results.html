@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.full_name }} - Term Results - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ student.full_name }}</h1>
+      <p class="text-subtle mb-0">Adm. No. {{ student.admission_no }} · {{ student.class_stream }}</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      {% if term_options %}
+        <form method="get" class="d-flex gap-2">
+          <select name="term" class="form-select" onchange="this.form.submit()">
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if term and opt.pk == term.pk %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+      {% endif %}
+      {% if user_profile.is_admin %}
+        <a href="{% url 'students:detail' student.pk %}" class="btn btn-outline-secondary">
+          <i class="bi bi-person me-1"></i>Profile
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if results %}
+    <div class="row g-3">
+      <div class="col-12 col-lg-8">
+        <div class="card card-body-section">
+          <div class="card-header card-body-section d-flex justify-content-between align-items-center">
+            <strong>Subject results — {% if term %}{{ term }}{% else %}selected term{% endif %}</strong>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th>Assessments</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-end">Average %</th>
+                    <th class="text-center">Grade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in results.rows %}
+                    <tr>
+                      <td class="fw-semibold">{{ row.subject.name }}</td>
+                      <td>
+                        {% for item in row.assessments %}
+                          <div class="small">
+                            {{ item.assessment.name }}
+                            <span class="text-subtle">({{ item.scored }}/{{ item.max }})</span>
+                            {% if item.grade %}
+                              <span class="badge bg-primary">{{ item.grade.label }}</span>
+                            {% endif %}
+                          </div>
+                        {% endfor %}
+                      </td>
+                      <td class="text-end">{{ row.total }}</td>
+                      <td class="text-end">{{ row.avg_percent|floatformat:1 }}%</td>
+                      <td class="text-center">
+                        {% if row.grade %}
+                          <span class="badge bg-primary">{{ row.grade.label }}</span>
+                        {% else %}
+                          <span class="text-subtle">—</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <div class="card card-body-section">
+          <div class="card-body">
+            <div class="text-subtle small">Overall total</div>
+            <div class="fs-4 fw-semibold">{{ results.totals.scored }} <span class="text-subtle fs-6">/ {{ results.totals.max }}</span></div>
+            <hr>
+            <div class="text-subtle small">Overall average</div>
+            <div class="fs-4 fw-semibold">{{ results.overall_percent|floatformat:1 }}%</div>
+            <hr>
+            <div class="text-subtle small">Overall grade</div>
+            <div>
+              {% if results.overall_grade %}
+                <span class="badge bg-primary fs-6">{{ results.overall_grade.label }}</span>
+                <div class="text-subtle small mt-1">
+                  Points: {{ results.overall_grade.points }}
+                  {% if results.overall_grade.comment %}({{ results.overall_grade.comment }}){% endif %}
+                </div>
+              {% else %}
+                <span class="text-subtle">No grade configured for this range.</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% include 'partials/empty_state.html' with message='No published results are available for this student yet.' %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

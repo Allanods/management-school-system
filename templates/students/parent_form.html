@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ page_title }}</h1>
+      <p class="text-subtle mb-0">
+        Parent / guardian records are shared and can be linked to many students.
+      </p>
+    </div>
+    <a href="{% url 'students:parent_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>All parents
+    </a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-person-vcard me-1"></i>Parent details
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">{% include 'partials/field.html' with field=form.first_name %}</div>
+          <div class="col-12 col-md-6">{% include 'partials/field.html' with field=form.last_name %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.phone %}</div>
+          <div class="col-12 col-md-8">{% include 'partials/field.html' with field=form.email %}</div>
+          <div class="col-12 col-md-6">{% include 'partials/field.html' with field=form.occupation %}</div>
+          <div class="col-12 col-md-6">{% include 'partials/field.html' with field=form.address %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>
+        {% if is_create %}Add Parent{% else %}Save Changes{% endif %}
+      </button>
+      <a href="{% url 'students:parent_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,51 @@
+from django.urls import path
+
+from .views import (
+    AcademicsHomeView,
+    AssessmentCreateView,
+    AssessmentDetailView,
+    AssessmentListView,
+    AssessmentUpdateView,
+    ChildResultsView,
+    GradeBandCreateView,
+    GradeBandDeleteView,
+    GradeBandListView,
+    GradeBandUpdateView,
+    MarkEntryView,
+    ParentPerformanceView,
+    TeacherClassesView,
+    TeacherMarksView,
+    TermCreateView,
+    TermSetCurrentView,
+    TermUpdateView,
+    YearCreateView,
+    YearListView,
+    YearSetCurrentView,
+    YearUpdateView,
+)
+
+app_name = 'academics'
+
+urlpatterns = [
+    path('', AcademicsHomeView.as_view(), name='home'),
+    path('years/', YearListView.as_view(), name='year_list'),
+    path('years/add/', YearCreateView.as_view(), name='year_add'),
+    path('years/<int:pk>/edit/', YearUpdateView.as_view(), name='year_edit'),
+    path('years/<int:pk>/set-current/', YearSetCurrentView.as_view(), name='year_set_current'),
+    path('terms/add/', TermCreateView.as_view(), name='term_add'),
+    path('terms/<int:pk>/edit/', TermUpdateView.as_view(), name='term_edit'),
+    path('terms/<int:pk>/set-current/', TermSetCurrentView.as_view(), name='term_set_current'),
+    path('grade-bands/', GradeBandListView.as_view(), name='gradeband_list'),
+    path('grade-bands/add/', GradeBandCreateView.as_view(), name='gradeband_add'),
+    path('grade-bands/<int:pk>/edit/', GradeBandUpdateView.as_view(), name='gradeband_edit'),
+    path('grade-bands/<int:pk>/delete/', GradeBandDeleteView.as_view(), name='gradeband_delete'),
+    path('assessments/', AssessmentListView.as_view(), name='assessment_list'),
+    path('assessments/add/', AssessmentCreateView.as_view(), name='assessment_add'),
+    path('assessments/<int:pk>/', AssessmentDetailView.as_view(), name='assessment_detail'),
+    path('assessments/<int:pk>/edit/', AssessmentUpdateView.as_view(), name='assessment_edit'),
+    path('marks/', TeacherMarksView.as_view(), name='marks'),
+    path('marks/<int:pk>/enter/', MarkEntryView.as_view(), name='mark_entry'),
+    path('my-classes/', TeacherClassesView.as_view(), name='my_classes'),
+    path('performance/', ParentPerformanceView.as_view(), name='performance'),
+    path('performance/<int:pk>/', ChildResultsView.as_view(), name='child_results'),
+]

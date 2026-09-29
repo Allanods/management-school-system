@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ assessment.name }}</h1>
+      <p class="text-subtle mb-0">Mark entry sheet</p>
+    </div>
+    <a href="{% url 'academics:assessment_detail' assessment.pk %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back to results
+    </a>
+  </div>
+
+  <div class="alert alert-primary d-flex flex-wrap gap-3 mb-3 align-items-center">
+    <div><strong class="text-uppercase small d-block">Class stream</strong>{{ assessment.class_stream }}</div>
+    <div><strong class="text-uppercase small d-block">Subject</strong>{{ assessment.subject.name }}</div>
+    <div><strong class="text-uppercase small d-block">Term</strong>{{ assessment.term }}</div>
+    <div><strong class="text-uppercase small d-block">Maximum marks</strong>{{ assessment.max_marks }}</div>
+    <div class="ms-auto">
+      {% if assessment.status == 'PUBLISHED' %}
+        <span class="badge bg-success">Published — locked</span>
+      {% else %}
+        <span class="badge bg-warning text-dark">Draft — editable</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+      <div class="alert alert-danger">
+        {% for error in formset.non_form_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="card card-body-section">
+      <div class="card-body p-0">
+        {% if rows %}
+          <div class="table-responsive">
+            <table class="table align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Admission No</th>
+                  <th>Student</th>
+                  <th style="width: 220px;">Score (max {{ assessment.max_marks }})</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for student, form in rows %}
+                  <tr>
+                    <td>{{ student.admission_no }}</td>
+                    <td class="fw-semibold">{{ student.full_name }}</td>
+                    <td>
+                      {{ form.student }}
+                      {{ form.scored }}
+                      {% for error in form.scored.errors %}
+                        <div class="text-danger small mt-1">
+                          <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                        </div>
+                      {% endfor %}
+                      {% for error in form.student.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                      {% endfor %}
+                    </td>
+                    <td>
+                      {% if student.status == 'ACTIVE' %}
+                        <span class="badge bg-success">Active</span>
+                      {% else %}
+                        <span class="badge bg-secondary">{{ student.get_status_display }}</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer card-body-section d-flex align-items-center justify-content-between">
+            <span class="text-subtle small">
+              {{ student_count }} active students · {{ existing_count }} marks already entered
+            </span>
+            <div class="d-flex gap-2">
+              <a href="{% url 'academics:assessment_detail' assessment.pk %}" class="btn btn-outline-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check-lg me-1"></i>Save Marks
+              </button>
+            </div>
+          </div>
+        {% else %}
+          {% include 'partials/empty_state.html' with message='No active students in this class stream to record marks for.' %}
+        {% endif %}
+      </div>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="page-title mb-0">{{ page_title }}</h1>
+    <a href="{% url 'teachers:list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>All teachers
+    </a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-person-gear me-1"></i>User account
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="mb-3">
+              {% for radio in form.user_action %}
+                <div class="form-check">
+                  {{ radio.tag }}
+                  <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                </div>
+              {% endfor %}
+              {% for error in form.user_action.errors %}
+                <div class="text-danger small mt-1">
+                  <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4 {% if form.user_action.value != 'create' %}d-none{% endif %}" id="createFields">
+            {% include 'partials/field.html' with field=form.username %}
+            {% include 'partials/field.html' with field=form.password1 %}
+            {% include 'partials/field.html' with field=form.password2 %}
+          </div>
+
+          <div class="col-12 col-md-6 {% if form.user_action.value != 'link' %}d-none{% endif %}" id="linkFields">
+            {% include 'partials/field.html' with field=form.link_user %}
+          </div>
+
+          <div class="col-12 text-subtle small {% if form.user_action.value != 'keep' or is_create %}d-none{% endif %}" id="keepNote">
+            <i class="bi bi-info-circle me-1"></i>
+            {% if teacher.user %}Linked to <strong>{{ teacher.user.username }}</strong>.{% else %}No user account is linked to this teacher.{% endif %}
+            This account will be kept unchanged.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-person-vcard me-1"></i>Personal &amp; employment details
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.employee_no %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.first_name %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.middle_name %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.last_name %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.gender %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.department %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.date_joined %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.phone %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.email %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.is_active %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-diagram-3 me-1"></i>Classes &amp; responsibilities
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            {% include 'partials/field.html' with field=form.class_teacher_for %}
+          </div>
+          <div class="col-12 col-md-6">
+            {% include 'partials/field.html' with field=form.classes %}
+          </div>
+        </div>
+
+        <hr>
+
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <div class="fw-semibold"><i class="bi bi-journal-bookmark me-1"></i>Subject assignments</div>
+          <div class="text-subtle small">Assign a subject and class-stream to grant mark-entry rights.</div>
+        </div>
+
+        {% if assignment_formset %}
+          {{ assignment_formset.management_form }}
+          {% for aform in assignment_formset.forms %}
+            <div class="row g-2 align-items-end mb-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label">Class / Stream</label>
+                {{ aform.class_stream }}
+                {% for error in aform.class_stream.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label">Subject</label>
+                {{ aform.subject }}
+                {% for error in aform.subject.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-6 col-md-2">
+                {% if assignment_formset.can_delete %}
+                  <label class="form-label d-block">&nbsp;</label>
+                  <label class="form-check-label d-flex align-items-center gap-2 text-subtle small pt-2">
+                    {{ aform.DELETE }} Remove
+                  </label>
+                {% endif %}
+              </div>
+              {{ aform.id }}
+            </div>
+          {% endfor %}
+          {% if assignment_formset.non_form_errors %}
+            <div class="alert alert-danger py-2 mb-0">
+              {% for error in assignment_formset.non_form_errors %}<div>{{ error }}</div>{% endfor %}
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>{% if is_create %}Register Teacher{% else %}Save Changes{% endif %}
+      </button>
+      <a href="{% url 'teachers:list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    document.querySelectorAll('input[name="user_action"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        toggleAccountFields(this.value);
+      });
+    });
+    function toggleAccountFields(value) {
+      document.getElementById('createFields').classList.toggle('d-none', value !== 'create');
+      document.getElementById('linkFields').classList.toggle('d-none', value !== 'link');
+      document.getElementById('keepNote').classList.toggle('d-none', value !== 'keep');
+    }
+  </script>
+{% endblock %}

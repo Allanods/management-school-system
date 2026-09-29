@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ page_title }}</h1>
+      {% if account %}
+        <p class="text-subtle mb-0">
+          {{ account.student.full_name }} · {{ account.student.admission_no }} · {{ account.term }}
+        </p>
+      {% endif %}
+    </div>
+    {% if account %}
+      <a href="{% url 'fees:account_detail' account.pk %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Account
+      </a>
+    {% endif %}
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+    <div class="card card-body-section mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.description %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.amount %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.date %}</div>
+          <div class="col-12">{% include 'partials/field.html' with field=form.notes %}</div>
+        </div>
+        <div class="alert alert-light border mt-3 py-2 small mb-0">
+          <i class="bi bi-info-circle me-1"></i>
+          Charges are financial records and can be corrected by editing, but
+          they are never deleted.
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>Save
+      </button>
+      {% if account %}
+        <a href="{% url 'fees:account_detail' account.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      {% else %}
+        <a href="{% url 'fees:accounts' %}" class="btn btn-outline-secondary">Cancel</a>
+      {% endif %}
+    </div>
+  </form>
+{% endblock %}

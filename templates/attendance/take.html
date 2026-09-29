@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <h1 class="page-title mb-1">Take Attendance</h1>
+    <p class="text-subtle mb-0">
+      Choose a class stream you are the class teacher of. Attendance is recorded for
+      {{ today|date:'d M Y' }} by default; you can load another date on the sheet.
+    </p>
+  </div>
+
+  {% if streams %}
+    <div class="row g-3">
+      {% for stream in streams %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="card card-body-section h-100">
+            <div class="card-body">
+              <h5 class="mb-1">{{ stream }}</h5>
+              <div class="text-subtle small mb-3">
+                {{ stream.school_class.is_active|yesno:'Active,' }} stream
+              </div>
+              <a
+                href="{% url 'attendance:sheet' %}?class_stream={{ stream.pk }}&date={{ today|date:'Y-m-d' }}"
+                class="btn btn-primary w-100">
+                <i class="bi bi-person-check me-1"></i>Open attendance sheet
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% if user_profile.is_admin %}
+          {% include 'partials/empty_state.html' with message='No class streams exist yet. Create one in Structure first.' %}
+        {% else %}
+          {% include 'partials/empty_state.html' with message='You are not the class teacher of any class stream yet. Ask an administrator to assign you.' %}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load students_tags %}
+
+{% block title %}Students - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Students</h1>
+      <p class="text-subtle mb-0">
+        {{ page_obj.paginator.count }} student{{ page_obj.paginator.count|pluralize }}
+      </p>
+    </div>
+    {% if user_profile.is_admin %}
+      <div class="d-flex gap-2">
+        <a href="{% url 'students:promote' %}" class="btn btn-outline-primary">
+          <i class="bi bi-arrow-right-circle me-1"></i>Promote
+        </a>
+        <a href="{% url 'students:add' %}" class="btn btn-primary">
+          <i class="bi bi-person-plus me-1"></i>Register Student
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="{{ filter_form.q.id_for_label }}">Search</label>
+          {{ filter_form.q }}
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="{{ filter_form.school_class.id_for_label }}">Class</label>
+          {{ filter_form.school_class }}
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="{{ filter_form.stream.id_for_label }}">Stream</label>
+          {{ filter_form.stream }}
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="{{ filter_form.status.id_for_label }}">Status</label>
+          {{ filter_form.status }}
+        </div>
+        <div class="col-6 col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'students:list' %}" class="btn btn-outline-secondary" title="Clear filters">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if students %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Admission No</th>
+                <th>Class / Stream</th>
+                <th>Guardians</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for student in students %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="user-avatar">{{ student.first_name|slice:":1"|upper }}</span>
+                      <div>
+                        <div class="fw-semibold">{{ student.full_name }}</div>
+                        <div class="text-subtle small">
+                          {{ student.get_gender_display }}
+                          {% if student.date_of_birth %} &middot; {{ student.date_of_birth|date:"d M Y" }}{% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-nowrap">{{ student.admission_no }}</td>
+                  <td>{{ student.class_stream }}</td>
+                  <td>
+                    {% for parent in student.parents.all %}
+                      <span class="badge rounded-pill bg-soft-primary me-1">{{ parent.full_name }}</span>
+                    {% empty %}
+                      <span class="text-subtle small">No guardian linked</span>
+                    {% endfor %}
+                  </td>
+                  <td>
+                    <span class="badge {{ student.status|status_badge }}">{{ student.get_status_display }}</span>
+                  </td>
+                  <td class="text-end text-nowrap">
+                    <a href="{% url 'students:detail' student.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    {% if user_profile.is_admin %}
+                      <a href="{% url 'students:edit' student.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                      </a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No students found. Try adjusting your filters or register a new student.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

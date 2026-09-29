@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load students_tags %}
+
+{% block title %}{{ student.full_name }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <span class="user-avatar" style="width:56px;height:56px;font-size:1.4rem;">
+        {{ student.first_name|slice:":1"|upper }}
+      </span>
+      <div>
+        <h1 class="page-title mb-1">{{ student.full_name }}</h1>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge {{ student.status|status_badge }}">{{ student.get_status_display }}</span>
+          <span class="text-subtle">Adm. No. {{ student.admission_no }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'students:list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>All students
+      </a>
+      {% if user_profile.is_admin %}
+        <a href="{% url 'students:edit' student.pk %}" class="btn btn-primary">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-8">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-person-lines-fill me-1"></i>Personal details
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-4 col-md-3 text-subtle">Full name</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ student.full_name }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Gender</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ student.get_gender_display }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Date of birth</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ student.date_of_birth|date:"d M Y"|default:"—" }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Emergency contact</dt>
+            <dd class="col-8 col-md-9 mb-0">
+              {% if student.contact_name %}{{ student.contact_name }}{% else %}—{% endif %}
+              {% if student.contact_phone %}
+                <span class="text-nowrap">&middot; {{ student.contact_phone }}</span>
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-diagram-3 me-1"></i>Class &amp; Stream
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-5 text-subtle">Class</dt>
+            <dd class="col-7 mb-2">{{ student.class_stream.school_class.name }}</dd>
+            <dt class="col-5 text-subtle">Stream</dt>
+            <dd class="col-7 mb-2">{{ student.class_stream.stream.name }}</dd>
+            <dt class="col-5 text-subtle">Admitted</dt>
+            <dd class="col-7 mb-2">{{ student.date_admitted|date:"d M Y" }}</dd>
+            <dt class="col-5 text-subtle">Class teacher</dt>
+            <dd class="col-7 mb-0">
+              {{ student.class_stream.class_teacher.full_name|default:"—" }}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-6">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-people me-1"></i>Parents / Guardians
+        </div>
+        <div class="card-body">
+          {% for link in student.guardian_links.all %}
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+              <div>
+                <div class="fw-semibold">{{ link.parent.full_name }}</div>
+                <div class="text-subtle small">
+                  {{ link.get_relationship_display }}
+                  {% if link.parent.phone %}&middot; {{ link.parent.phone }}{% endif %}
+                  {% if link.parent.email %}&middot; {{ link.parent.email }}{% endif %}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-subtle mb-0">No guardian linked to this student.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-3">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-mortarboard me-1"></i>Academic summary
+        </div>
+        <div class="card-body d-flex flex-column justify-content-center text-center">
+          <p class="text-subtle mb-2">Term averages and report cards will appear here.</p>
+          <span class="badge rounded-pill bg-soft-primary align-self-center">Available in the Academics module</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-3">
+      <div class="d-flex flex-column gap-3 h-100">
+        <div class="card card-body-section flex-grow-1">
+          <div class="card-header bg-transparent fw-semibold">
+            <i class="bi bi-calendar-check me-1"></i>Attendance
+          </div>
+          <div class="card-body text-center">
+            <p class="text-subtle mb-2">Daily attendance summary will appear here.</p>
+            <span class="badge rounded-pill bg-soft-primary">Attendance module</span>
+          </div>
+        </div>
+        <div class="card card-body-section flex-grow-1">
+          <div class="card-header bg-transparent fw-semibold">
+            <i class="bi bi-cash-coin me-1"></i>Fees
+          </div>
+          <div class="card-body text-center">
+            <p class="text-subtle mb-2">Fee balance and statements will appear here.</p>
+            <span class="badge rounded-pill bg-soft-primary">Fees module</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

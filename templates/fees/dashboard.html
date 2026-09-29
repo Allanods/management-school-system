@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Finance Dashboard</h1>
+      <p class="text-subtle mb-0">Fees, charges, payments and outstanding balances.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'fees:structures' %}" class="btn btn-primary">
+        <i class="bi bi-journal-text me-1"></i>Fee Structures
+      </a>
+      <a href="{% url 'fees:accounts' %}" class="btn btn-outline-primary">
+        <i class="bi bi-people me-1"></i>Accounts
+      </a>
+      <a href="{% url 'fees:payment_list' %}" class="btn btn-outline-primary">
+        <i class="bi bi-cash-coin me-1"></i>Payments
+      </a>
+    </div>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_term">Term</label>
+          <select name="term" id="id_term" class="form-select">
+            <option value="">Current term</option>
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if filters.term == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_class_stream">Class Stream</label>
+          <select name="class_stream" id="id_class_stream" class="form-select">
+            <option value="">Whole school</option>
+            {% for opt in class_stream_options %}
+              <option value="{{ opt.pk }}" {% if filters.class_stream == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'fees:home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if no_terms %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% include 'partials/empty_state.html' with message='No academic terms exist yet. Create a year and term under Academics first.' %}
+      </div>
+    </div>
+  {% else %}
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Total charged</div>
+            <div class="fs-4 fw-semibold">KSh {{ stats.total_charged|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Total paid</div>
+            <div class="fs-4 fw-semibold text-success">KSh {{ stats.total_paid|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Outstanding</div>
+            <div class="fs-4 fw-semibold text-danger">KSh {{ stats.outstanding|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Accounts owing</div>
+            <div class="fs-4 fw-semibold">{{ stats.owing_count }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">Fully settled</div>
+            <div class="fs-4 fw-semibold text-success">{{ stats.paid_full_count }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card card-body-section h-100">
+          <div class="card-body">
+            <div class="text-subtle small">In credit</div>
+            <div class="fs-4 fw-semibold text-info">{{ stats.in_credit_count }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if term %}
+      <div class="alert alert-light border small mb-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Showing figures for <strong>{{ term }}</strong>.
+      </div>
+    {% endif %}
+
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <div class="card card-body-section">
+          <div class="card-header card-body-section d-flex justify-content-between align-items-center">
+            <strong>Recent charges</strong>
+            <a href="{% url 'fees:accounts' %}" class="small">All accounts</a>
+          </div>
+          <div class="card-body p-0">
+            {% if stats.recent_charges %}
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Student</th>
+                      <th>Description</th>
+                      <th class="text-end">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for charge in stats.recent_charges %}
+                      <tr>
+                        <td>{{ charge.date|date:'d M Y' }}</td>
+                        <td class="fw-semibold">{{ charge.student.full_name }}</td>
+                        <td>{{ charge.description }}</td>
+                        <td class="text-end">KSh {{ charge.amount|floatformat:2 }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              {% include 'partials/empty_state.html' with message='No charges recorded for this period.' %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="card card-body-section">
+          <div class="card-header card-body-section d-flex justify-content-between align-items-center">
+            <strong>Recent payments</strong>
+            <a href="{% url 'fees:payment_list' %}" class="small">View all</a>
+          </div>
+          <div class="card-body p-0">
+            {% if stats.recent_payments %}
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Student</th>
+                      <th>Method</th>
+                      <th class="text-end">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for payment in stats.recent_payments %}
+                      <tr>
+                        <td>{{ payment.date|date:'d M Y' }}</td>
+                        <td class="fw-semibold">{{ payment.account.student.full_name }}</td>
+                        <td>{{ payment.get_method_display }}</td>
+                        <td class="text-end">KSh {{ payment.amount|floatformat:2 }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              {% include 'partials/empty_state.html' with message='No payments recorded for this period.' %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

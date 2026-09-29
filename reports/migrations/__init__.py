@@ -1,0 +1,1 @@
+# reports has no models and therefore no migrations.

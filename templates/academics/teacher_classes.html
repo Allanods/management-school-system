@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <h1 class="page-title mb-1">My Classes</h1>
+    <p class="text-subtle mb-0">
+      Class streams you work with. Marks entry is available only for assigned
+      subject combinations.
+    </p>
+  </div>
+
+  {% if combos %}
+    <div class="row g-3">
+      {% for combo in combos %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="card card-body-section h-100">
+            <div class="card-body">
+              <h5 class="mb-1">{{ combo.class_stream }}</h5>
+              <div class="text-subtle small mb-2">
+                {{ combo.class_stream.school_class.name }} {{ combo.class_stream.stream.name }}
+              </div>
+              <div class="d-flex flex-wrap gap-1 mb-3">
+                {% if combo.is_class_teacher %}
+                  <span class="badge rounded-pill bg-soft-success">Class teacher</span>
+                {% endif %}
+                {% if combo.is_whole_class %}
+                  <span class="badge rounded-pill bg-soft-primary">Whole-class coverage</span>
+                {% endif %}
+                {% if combo.subject_assignments %}
+                  <span class="badge rounded-pill bg-soft-secondary">
+                    {{ combo.subject_assignments|length }} subject assignment{{ combo.subject_assignments|pluralize }}
+                  </span>
+                {% endif %}
+              </div>
+              <ul class="list-group list-group-flush mb-3">
+                {% for item in combo.subjects %}
+                  <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">{{ item.subject.name }}</span>
+                    <span class="text-subtle small">{{ item.assessment_count }} assessment{{ item.assessment_count|pluralize }}</span>
+                  </li>
+                {% empty %}
+                  <li class="list-group-item px-0 text-subtle">
+                    No subject assignments for mark entry.
+                  </li>
+                {% endfor %}
+              </ul>
+              <a
+                href="{% url 'academics:marks' %}?class_stream={{ combo.class_stream.pk }}"
+                class="btn btn-primary w-100">
+                <i class="bi bi-pencil-square me-1"></i>Select Assessment
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% if teacher %}
+          {% include 'partials/empty_state.html' with message='No teaching assignments yet. An administrator must assign you before you can enter marks.' %}
+        {% else %}
+          {% include 'partials/empty_state.html' with message='No teacher profile is linked to your account. Contact an administrator to finish setting up your account.' %}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

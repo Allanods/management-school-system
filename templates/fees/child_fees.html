@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.full_name }} - Fees - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ student.full_name }}</h1>
+      <p class="text-subtle mb-0">Adm. No. {{ student.admission_no }} · {{ student.class_stream }}</p>
+    </div>
+    <a href="{% url 'fees:my_children' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>My Children
+    </a>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-6">
+          <label class="form-label" for="id_term">Term</label>
+          <select name="term" id="id_term" class="form-select">
+            <option value="">Current term</option>
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if filters.term == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-6 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel me-1"></i>View statement
+          </button>
+          <a href="{% url 'fees:child_fees' student.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if account %}
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Total charged</div>
+          <div class="fs-4 fw-semibold">KSh {{ account.total_charged|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Total paid</div>
+          <div class="fs-4 fw-semibold text-success">KSh {{ account.total_paid|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Balance</div>
+          <div class="fs-4 fw-semibold
+            {% if account.balance > 0 %}text-danger
+            {% elif account.balance < 0 %}text-success
+            {% endif %}">KSh {{ account.balance|floatformat:2 }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="text-subtle small">Term</div>
+          <div class="fs-5 fw-semibold">{{ term }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card card-body-section">
+    <div class="card-header card-body-section">
+      <strong>Fee statement{% if term %} — {{ term }}{% endif %}</strong>
+    </div>
+    <div class="card-body p-0">
+      {% if statement %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th class="text-end">Charge</th>
+                <th class="text-end">Payment</th>
+                <th class="text-end">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in statement %}
+                <tr>
+                  <td>{{ row.date|date:'d M Y' }}</td>
+                  <td>{{ row.description }}
+                    {% if row.notes %}<span class="text-subtle small ms-1">{{ row.notes }}</span>{% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if row.kind == 'charge' %}KSh {{ row.amount|floatformat:2 }}{% else %}—{% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if row.kind == 'payment' %}KSh {{ row.amount|floatformat:2 }}{% else %}—{% endif %}
+                  </td>
+                  <td class="text-end fw-semibold">
+                    {% if row.balance < 0 %}
+                      <span class="text-success">KSh {{ row.balance|floatformat:2 }}</span>
+                    {% else %}
+                      KSh {{ row.balance|floatformat:2 }}
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="table-light">
+                <th colspan="2">Totals</th>
+                <th class="text-end">KSh {{ account.total_charged|floatformat:2 }}</th>
+                <th class="text-end">KSh {{ account.total_paid|floatformat:2 }}</th>
+                <th class="text-end">KSh {{ account.balance|floatformat:2 }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No financial activity recorded for this term.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

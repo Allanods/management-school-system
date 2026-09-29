@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}My Children's Attendance - SchoolManager{% endblock %}
+
+{% block content %}
+  <style>
+    @media print {
+      .app-sidebar, .app-topbar, .no-print { display: none !important; }
+      .app-main { padding: 0 !important; }
+    }
+  </style>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print">
+    <div>
+      <h1 class="page-title mb-1">Attendance — My Children</h1>
+      <p class="text-subtle mb-0">Term attendance for the students linked to you.</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+      <form method="get" class="d-flex gap-2">
+        <select name="term" class="form-select" onchange="this.form.submit()">
+          <option value="">Most recent</option>
+          {% for opt in term_options %}
+            <option value="{{ opt.pk }}" {% if filters.term == opt.pk|stringformat:"s" %}selected{% endif %}>
+              {{ opt }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    </div>
+  </div>
+
+  {% if rows %}
+    <div class="card card-body-section">
+      <div class="card-header card-body-section">
+        <strong>Students</strong>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Adm No</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th class="text-center">Present</th>
+                <th class="text-center">Late</th>
+                <th class="text-center">Absent</th>
+                <th class="text-center">Excused</th>
+                <th class="text-center">Days</th>
+                <th class="text-end">Attendance %</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+                <tr>
+                  <td>{{ row.student.admission_no }}</td>
+                  <td>{{ row.student.full_name }}</td>
+                  <td>{{ row.student.class_stream|default:'—' }}</td>
+                  <td class="text-center text-success">{{ row.summary.present|default:'0' }}</td>
+                  <td class="text-center text-warning">{{ row.summary.late|default:'0' }}</td>
+                  <td class="text-center text-danger">{{ row.summary.absent|default:'0' }}</td>
+                  <td class="text-center text-info">{{ row.summary.excused|default:'0' }}</td>
+                  <td class="text-center">{{ row.summary.recorded_days|default:'0' }}</td>
+                  <td class="text-end">
+                    {% if row.summary and row.summary.percent is not None %}
+                      <strong>{{ row.summary.percent|floatformat:1 }}%</strong>
+                    {% else %}
+                      <span class="text-subtle">—</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <a href="{% url 'reports:attendance_child' row.student.pk %}?{% if term %}term={{ term.pk }}{% endif %}"
+                       class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-calendar3 me-1"></i>Details
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    {% include 'partials/empty_state.html' with message='No students are currently linked to your account.' %}
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ page_title }}</h1>
+      <p class="text-subtle mb-0">Reach teachers and parents with targeted notices.</p>
+    </div>
+    {% if announcement and announcement.published %}
+      <span class="badge text-bg-success">Published</span>
+    {% elif announcement %}
+      <span class="badge text-bg-secondary">Draft</span>
+    {% endif %}
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+    <div class="card card-body-section mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-8">{% include 'partials/field.html' with field=form.title %}</div>
+          <div class="col-12">{% include 'partials/field.html' with field=form.message %}</div>
+          <div class="col-12 col-md-6">{% include 'partials/field.html' with field=form.audience %}</div>
+        </div>
+        {% if announcement and announcement.published %}
+          <div class="alert alert-light border mt-3 py-2 small mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            This announcement is published. Editing it will not unpublish it,
+            and its published date is preserved.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>Save
+      </button>
+      {% if announcement %}
+        <a href="{% url 'announcements:detail' announcement.pk %}" class="btn btn-outline-secondary">Cancel</a>
+      {% else %}
+        <a href="{% url 'announcements:list' %}" class="btn btn-outline-secondary">Cancel</a>
+      {% endif %}
+    </div>
+  </form>
+{% endblock %}

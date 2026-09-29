@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ teacher.full_name }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <span class="user-avatar" style="width:56px;height:56px;font-size:1.4rem;">
+        {{ teacher.first_name|slice:":1"|upper }}
+      </span>
+      <div>
+        <h1 class="page-title mb-1">{{ teacher.full_name }}</h1>
+        <div class="d-flex align-items-center gap-2">
+          {% if teacher.is_active %}
+            <span class="badge rounded-pill bg-soft-success">Active</span>
+          {% else %}
+            <span class="badge rounded-pill bg-soft-secondary">Inactive</span>
+          {% endif %}
+          <span class="text-subtle">Emp. No. {{ teacher.employee_no }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      {% if not is_profile %}
+        <a href="{% url 'teachers:list' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>All teachers
+        </a>
+      {% endif %}
+      {% if user_profile.is_admin %}
+        <a href="{% url 'teachers:edit' teacher.pk %}" class="btn btn-primary">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-8">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-person-vcard me-1"></i>Personal details
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-4 col-md-3 text-subtle">Full name</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ teacher.full_name }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Gender</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ teacher.get_gender_display }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Department</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ teacher.department.name|default:"—" }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Date joined</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ teacher.date_joined|date:"d M Y" }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Contact</dt>
+            <dd class="col-8 col-md-9 mb-0">
+              {% if teacher.phone %}{{ teacher.phone }}{% endif %}
+              {% if teacher.phone and teacher.email %} &middot; {% endif %}
+              {% if teacher.email %}{{ teacher.email }}{% endif %}
+              {% if not teacher.phone and not teacher.email %}—{% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-person-gear me-1"></i>User account
+        </div>
+        <div class="card-body">
+          {% if teacher.user %}
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span class="user-avatar">{{ teacher.user.username|slice:":1"|upper }}</span>
+              <div>
+                <div class="fw-semibold">{{ teacher.user.username }}</div>
+                <div class="text-subtle small">
+                  {% if teacher.user.is_active %}
+                    <span class="badge rounded-pill bg-soft-success">Login enabled</span>
+                  {% else %}
+                    <span class="badge rounded-pill bg-soft-secondary">Login disabled</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-subtle mb-0">No user account is linked to this teacher.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-4">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-person-check me-1"></i>Class teachership
+        </div>
+        <div class="card-body">
+          {% if headed_stream %}
+            <div class="fw-semibold">{{ headed_stream }}</div>
+            <div class="text-subtle small">Class teacher of this stream.</div>
+          {% else %}
+            <p class="text-subtle mb-0">Not a class teacher.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-diagram-3 me-1"></i>Classes
+        </div>
+        <div class="card-body">
+          {% for school_class in teacher.classes.all %}
+            <span class="badge rounded-pill bg-soft-primary me-1 mb-1">{{ school_class.name }}</span>
+          {% empty %}
+            <p class="text-subtle mb-0">No whole-class coverage assigned.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-journal-bookmark me-1"></i>Subject assignments
+        </div>
+        <div class="card-body">
+          <p class="text-subtle small mb-2">Grant mark-entry rights for these class-streams.</p>
+          {% for assignment in teacher.assignments.all %}
+            <div class="d-flex justify-content-between border-bottom py-2">
+              <div>
+                <div class="fw-semibold">{{ assignment.subject.name }}</div>
+                <div class="text-subtle small">{{ assignment.class_stream }}</div>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-subtle mb-0">No subject assignments yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

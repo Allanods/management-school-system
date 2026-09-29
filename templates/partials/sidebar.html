@@ -1,0 +1,49 @@
+<div class="offcanvas-lg offcanvas app-sidebar" tabindex="-1" id="appSidebar">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="appSidebarLabel">SchoolManager</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body d-flex flex-column p-0">
+    <div class="brand d-none d-lg-flex">
+      <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+      <span>
+        <span class="brand-name">SchoolManager</span>
+        <span class="brand-sub">Management System</span>
+      </span>
+    </div>
+
+    <nav class="nav flex-column flex-grow-1 align-self-stretch">
+      {% if user_profile and user_profile.is_admin %}
+        <div class="nav-section">
+          <div class="nav-section-title">Administration</div>
+        </div>
+      {% endif %}
+      {% for item in nav_items %}
+        <div class="nav-section">
+          {% if item.href %}
+            <a href="{{ item.href }}" class="nav-link {% if item.active %}active{% endif %}">
+              <i class="bi bi-{{ item.icon }}"></i>{{ item.label }}
+            </a>
+          {% else %}
+            <span class="nav-link nav-link-planned" title="Available in a later release">
+              <i class="bi bi-{{ item.icon }}"></i>{{ item.label }}
+            </span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </nav>
+
+    {% if user_profile %}
+      <div class="sidebar-footer d-none d-lg-block">
+        <div class="d-flex align-items-center gap-2">
+          <span class="user-avatar">{{ user_profile.user.username|slice:":2"|upper }}</span>
+          <div>
+            <div class="text-white">{{ user_profile.user.get_full_name|default:user_profile.user.username }}</div>
+            <div class="role-badge">{{ user_profile.get_role_display }}</div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>

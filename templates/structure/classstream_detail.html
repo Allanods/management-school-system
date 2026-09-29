@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ class_stream }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <span class="user-avatar" style="width:56px;height:56px;font-size:1.4rem;">
+        <i class="bi bi-columns-gap"></i>
+      </span>
+      <div>
+        <h1 class="page-title mb-1">{{ class_stream }}</h1>
+        <div class="text-subtle">
+          {{ students.count }} student{{ students.count|pluralize }} &middot;
+          {{ subjects.count }} subject{{ subjects.count|pluralize }} offered
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'structure:classstream_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>All class streams
+      </a>
+      <a href="{% url 'structure:classstream_edit' class_stream.pk %}" class="btn btn-primary">
+        <i class="bi bi-pencil me-1"></i>Edit
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-4">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-person-check me-1"></i>Class Teacher
+        </div>
+        <div class="card-body">
+          {% if class_stream.class_teacher %}
+            <div class="d-flex align-items-center gap-2">
+              <span class="user-avatar">{{ class_stream.class_teacher.first_name|slice:":1"|upper }}</span>
+              <div>
+                <div class="fw-semibold">{{ class_stream.class_teacher.full_name }}</div>
+                <div class="text-subtle small">{{ class_stream.class_teacher.department.name|default:"No department" }}</div>
+              </div>
+            </div>
+          {% else %}
+            <p class="text-subtle mb-0">No class teacher assigned.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-8">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-journal-bookmark me-1"></i>Subjects offered
+        </div>
+        <div class="card-body">
+          {% if subjects %}
+            {% for subject in subjects %}
+              <span class="badge rounded-pill bg-soft-primary me-1 mb-1">
+                {{ subject.name }}{% if subject.code %} ({{ subject.code }}){% endif %}
+              </span>
+            {% endfor %}
+            {% if not assignments %}<p class="text-subtle small mt-2 mb-0">No teachers assigned yet.</p>{% endif %}
+          {% else %}
+            <p class="text-subtle mb-0">No subjects offered in this stream yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-7">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-journal-check me-1"></i>Teacher assignments
+        </div>
+        <div class="card-body">
+          {% if assignments %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Teacher</th>
+                    <th>Subject</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for assignment in assignments %}
+                    <tr>
+                      <td>{{ assignment.teacher.full_name }}</td>
+                      <td>{{ assignment.subject.name }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-subtle mb-0">No teacher assignments for this stream.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-people me-1"></i>Students in {{ class_stream }}
+        </div>
+        <div class="card-body p-0">
+          {% if students %}
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Adm.</th>
+                    <th>Student</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for student in students %}
+                    <tr>
+                      <td class="text-nowrap text-subtle">{{ student.admission_no }}</td>
+                      <td>{{ student.full_name }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-subtle p-3 mb-0">No students enrolled in this stream.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

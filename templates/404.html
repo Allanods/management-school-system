@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Page not found - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="card card-body-section">
+    <div class="card-body text-center py-5">
+      <div class="display-1 text-primary"><i class="bi bi-compass"></i></div>
+      <h2 class="fw-bold mt-3">Page not found</h2>
+      <p class="text-subtle mb-4">The page you are looking for does not exist.</p>
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary">
+        <i class="bi bi-house-door me-1"></i>Back to dashboard
+      </a>
+    </div>
+  </div>
+{% endblock %}

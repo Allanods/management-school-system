@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load academics_tags %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Academic Years</h1>
+      <p class="text-subtle mb-0">{{ page_obj.paginator.count }} year{{ page_obj.paginator.count|pluralize }}</p>
+    </div>
+    <a href="{% url 'academics:year_add' %}" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>Add Year
+    </a>
+  </div>
+
+  {% for year in years %}
+    <div class="card card-body-section mb-3">
+      <div class="card-body py-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <div class="d-flex align-items-center gap-2">
+              <h5 class="mb-0">{{ year.name }}</h5>
+              {% if year.is_current %}
+                <span class="badge bg-success">Current</span>
+              {% endif %}
+              <span class="text-subtle small">{{ year.start_date|date:'M j, Y' }} – {{ year.end_date|date:'M j, Y' }}</span>
+            </div>
+            <div class="text-subtle small mt-1">{{ year.term_count }} term{{ year.term_count|pluralize }}</div>
+          </div>
+          <div class="d-flex gap-2">
+            {% if not year.is_current %}
+              <form method="post" action="{% url 'academics:year_set_current' year.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-success">
+                  <i class="bi bi-check2-circle me-1"></i>Set current
+                </button>
+              </form>
+            {% endif %}
+            <a href="{% url 'academics:year_edit' year.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+            <a href="{% url 'academics:term_add' %}?year={{ year.pk }}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-plus-lg me-1"></i>Add Term
+            </a>
+          </div>
+        </div>
+
+        {% if terms|get_item:year.pk %}
+            <div class="table-responsive mt-3">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Term</th>
+                    <th>Dates</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for term in terms|get_item:year.pk %}
+                    <tr>
+                      <td class="fw-semibold">{{ term.name }}</td>
+                      <td class="text-subtle small">{{ term.start_date|date:'M j, Y' }} – {{ term.end_date|date:'M j, Y' }}</td>
+                      <td>
+                        {% if term.is_current %}
+                          <span class="badge bg-success">Current</span>
+                        {% else %}
+                          <span class="badge bg-secondary">—</span>
+                        {% endif %}
+                      </td>
+                      <td class="text-end text-nowrap">
+                        {% if not term.is_current %}
+                          <form method="post" action="{% url 'academics:term_set_current' term.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-success" title="Set current">
+                              <i class="bi bi-check2-circle"></i>
+                            </button>
+                          </form>
+                        {% endif %}
+                        <a href="{% url 'academics:term_edit' term.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% include 'partials/empty_state.html' with message='No academic years yet. Add the first year to begin.' %}
+      </div>
+    </div>
+  {% endfor %}
+
+  {% include 'partials/pagination.html' %}
+{% endblock %}

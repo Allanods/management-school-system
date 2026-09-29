@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Server error - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="card card-body-section">
+    <div class="card-body text-center py-5">
+      <div class="display-1 text-warning"><i class="bi bi-exclamation-octagon"></i></div>
+      <h2 class="fw-bold mt-3">Something went wrong</h2>
+      <p class="text-subtle mb-4">An unexpected error occurred. Please try again later.</p>
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary">
+        <i class="bi bi-house-door me-1"></i>Back to dashboard
+      </a>
+    </div>
+  </div>
+{% endblock %}

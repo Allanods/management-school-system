@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Account — {{ account.username }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div class="d-flex align-items-center gap-3">
+      <span class="user-avatar" style="width:52px;height:52px;font-size:1.3rem;">
+        {{ account.username|slice:":2"|upper }}
+      </span>
+      <div>
+        <h1 class="page-title mb-1">{{ account.get_full_name|default:account.username }}</h1>
+        <div class="d-flex align-items-center gap-2">
+          {% if account.is_superuser %}
+            <span class="badge text-bg-dark">Superuser</span>
+          {% else %}
+            <span class="badge text-bg-light border">{{ account.profile.get_role_display }}</span>
+          {% endif %}
+          {% if account.is_active %}
+            <span class="badge rounded-pill bg-soft-success">Account active</span>
+          {% else %}
+            <span class="badge rounded-pill bg-soft-secondary">Account inactive</span>
+          {% endif %}
+          <span class="text-subtle">@{{ account.username }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>All accounts
+      </a>
+      {% if not is_read_only %}
+        <a href="{% url 'accounts:user_password' account.pk %}" class="btn btn-primary">
+          <i class="bi bi-key me-1"></i>Reset Password
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if is_read_only %}
+    <div class="alert alert-light border py-2 small">
+      <i class="bi bi-shield-lock me-1"></i>
+      This superuser account is read-only in this user interface. Manage it through Django admin.
+    </div>
+  {% endif %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-6">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-person-lines-fill me-1"></i>Account details
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-4 col-md-3 text-subtle">Username</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ account.username }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Full name</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ account.get_full_name|default:"—" }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Email</dt>
+            <dd class="col-8 col-md-9 mb-2">{{ account.email|default:"—" }}</dd>
+            <dt class="col-4 col-md-3 text-subtle">Role</dt>
+            <dd class="col-8 col-md-9 mb-2">
+              {{ account.profile.get_role_display|default:"—" }}
+            </dd>
+            <dt class="col-4 col-md-3 text-subtle">Status</dt>
+            <dd class="col-8 col-md-9 mb-0">
+              {% if account.is_active %}Active{% else %}Inactive{% endif %}
+              account
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card card-body-section h-100">
+        <div class="card-header bg-transparent fw-semibold">
+          <i class="bi bi-diagram-3 me-1"></i>Linked school record
+        </div>
+        <div class="card-body">
+          {% if persona %}
+            <dl class="row mb-2">
+              <dt class="col-4 col-md-3 text-subtle">Type</dt>
+              <dd class="col-8 col-md-9 mb-2">
+                {% if persona_kind == 'teacher' %}
+                  <span class="badge text-bg-primary">Teacher</span>
+                {% else %}
+                  <span class="badge text-bg-success">Parent</span>
+                {% endif %}
+              </dd>
+              <dt class="col-4 col-md-3 text-subtle">Name</dt>
+              <dd class="col-8 col-md-9 mb-2">
+                {% if persona_kind == 'teacher' %}
+                  <a href="{% url 'teachers:detail' persona.pk %}">
+                    {{ persona.get_full_name }}
+                  </a>
+                  <span class="text-subtle">({{ persona.employee_no }})</span>
+                {% else %}
+                  {{ persona.full_name }}
+                  <span class="text-subtle">({{ persona.phone|default:"no phone" }})</span>
+                {% endif %}
+              </dd>
+              {% if persona_kind == 'teacher' %}
+                <dt class="col-4 col-md-3 text-subtle">Employment</dt>
+                <dd class="col-8 col-md-9 mb-0">
+                  {% if persona.is_active %}
+                    <span class="badge rounded-pill bg-soft-success">Active</span>
+                  {% else %}
+                    <span class="badge rounded-pill bg-soft-secondary">Inactive</span>
+                  {% endif %}
+                  <span class="text-subtle small">(school record)</span>
+                </dd>
+              {% endif %}
+            </dl>
+            {% if not is_read_only %}
+              <form method="post" action="{% url 'accounts:user_link' account.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="unlink">
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Unlink this account from its school record? Neither record is deleted.');">
+                  <i class="bi bi-link-45deg me-1"></i>Unlink
+                </button>
+              </form>
+            {% endif %}
+          {% elif account.profile.role == 'TEACHER' or account.profile.role == 'PARENT' %}
+            <p class="text-subtle mb-3">
+              This account has no linked
+              {% if account.profile.role == 'TEACHER' %}teacher{% else %}parent{% endif %}
+              record.
+            </p>
+            {% if not is_read_only and link_form %}
+              <form method="post" action="{% url 'accounts:user_link' account.pk %}" class="row g-2 align-items-end">
+                {% csrf_token %}
+                <div class="col-12 col-md-8">
+                  <label class="form-label">Link to {{ link_form.record.label }}</label>
+                  {{ link_form.record }}
+                </div>
+                <div class="col-12 col-md-4">
+                  <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-link-45deg me-1"></i>Link
+                  </button>
+                </div>
+              </form>
+            {% elif is_read_only %}
+              <p class="text-subtle mb-0">Superusers are never linked through this interface.</p>
+            {% endif %}
+          {% else %}
+            <p class="text-subtle mb-0">This account has no persona to link.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if not is_read_only %}
+    <div class="card card-body-section">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-sliders me-1"></i>Account status
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'accounts:user_toggle_active' account.pk %}">
+          {% csrf_token %}
+          {% if account.is_active %}
+            <p class="text-subtle mb-3">
+              Deactivating this account prevents login. The linked school record,
+              academic history, attendance and finance records are all kept intact.
+            </p>
+            <button type="submit" class="btn btn-outline-warning">
+              <i class="bi bi-pause-circle me-1"></i>Deactivate account
+            </button>
+          {% else %}
+            <p class="text-subtle mb-3">
+              Activating this account allows login again. No school record state is changed.
+            </p>
+            <button type="submit" class="btn btn-outline-success">
+              <i class="bi bi-play-circle me-1"></i>Activate account
+            </button>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

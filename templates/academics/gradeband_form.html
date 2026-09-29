@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">{{ page_title }}</h1>
+      <p class="text-subtle mb-0">
+        Bands must not overlap. Percentages outside every band map to no grade.
+      </p>
+    </div>
+    <a href="{% url 'academics:gradeband_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>All grade bands
+    </a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-award me-1"></i>Grade band
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-2">{% include 'partials/field.html' with field=form.label %}</div>
+          <div class="col-12 col-md-3">{% include 'partials/field.html' with field=form.min_percent %}</div>
+          <div class="col-12 col-md-3">{% include 'partials/field.html' with field=form.max_percent %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.points %}</div>
+          <div class="col-12">{% include 'partials/field.html' with field=form.comment %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>{% if form.instance.pk %}Save Changes{% else %}Add Grade Band{% endif %}
+      </button>
+      <a href="{% url 'academics:gradeband_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

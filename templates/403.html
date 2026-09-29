@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Access denied - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="card card-body-section">
+    <div class="card-body text-center py-5">
+      <div class="display-1 text-danger"><i class="bi bi-shield-lock"></i></div>
+      <h2 class="fw-bold mt-3">Access denied</h2>
+      <p class="text-subtle mb-4">You do not have permission to access this page.</p>
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary">
+        <i class="bi bi-house-door me-1"></i>Back to dashboard
+      </a>
+    </div>
+  </div>
+{% endblock %}

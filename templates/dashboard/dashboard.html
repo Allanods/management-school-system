@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <h1 class="page-title">Welcome, {{ user.get_full_name|default:user.username }}</h1>
+    <p class="text-subtle mb-0">This is the <span class="badge role-badge bg-soft-primary">{{ role_label }}</span> experience.</p>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3">
+            <span class="stat-icon bg-soft-primary"><i class="bi bi-people text-primary"></i></span>
+            <div>
+              <div class="stat-value">Course</div>
+              <div class="stat-label">Students, teachers and classes are managed here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3">
+            <span class="stat-icon bg-soft-success"><i class="bi bi-credit-card text-success"></i></span>
+            <div>
+              <div class="stat-value">Secure</div>
+              <div class="stat-label">Role-based access is enforced server-side.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="card card-body-section h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3">
+            <span class="stat-icon bg-soft-purple"><i class="bi bi-mortarboard text-purple"></i></span>
+            <div>
+              <div class="stat-value">Phase 1</div>
+              <div class="stat-label">Full role dashboards arrive in Phase 10.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-body-section">
+    <div class="card-body">
+      <h5 class="card-title d-flex align-items-center gap-2">
+        <i class="bi bi-stack text-primary"></i>Upcoming modules
+      </h5>
+      <div class="d-flex flex-wrap gap-2">
+        {% for item in nav_items %}
+          <span class="badge rounded-pill border text-subtle">
+            {{ item.label }}{% if not item.href %} <span class="text-danger">(planned)</span>{% endif %}
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Report - SchoolManager{% endblock %}
+
+{% block content %}
+  <style>
+    @media print {
+      .app-sidebar, .app-topbar, .no-print { display: none !important; }
+      .app-main { padding: 0 !important; }
+    }
+  </style>
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 no-print">
+    <div>
+      <h1 class="page-title mb-1">Attendance Report</h1>
+      <p class="text-subtle mb-0">Percentage is over the days a student has an attendance record for.</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if report %}
+        <button class="btn btn-outline-secondary" onclick="window.print()">
+          <i class="bi bi-printer me-1"></i>Print
+        </button>
+        <a href="{% url 'reports:attendance_csv' %}?{% if filters.term %}term={{ filters.term }}&{% endif %}class_stream={{ class_stream.pk }}"
+           class="btn btn-outline-primary">
+          <i class="bi bi-download me-1"></i>CSV
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3 no-print">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_term">Term</label>
+          <select name="term" id="id_term" class="form-select">
+            <option value="">Most recent</option>
+            {% for opt in term_options %}
+              <option value="{{ opt.pk }}" {% if filters.term == opt.pk|stringformat:"s" %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label" for="id_class_stream">Class Stream</label>
+          <select name="class_stream" id="id_class_stream" class="form-select">
+            {% for opt in class_stream_options %}
+              <option value="{{ opt.pk }}" {% if class_stream and opt.pk == class_stream.pk %}selected{% endif %}>
+                {{ opt }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex gap-2">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'reports:attendance' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if report %}
+    <div class="mb-3">
+      <strong>{{ term }}</strong> · {{ class_stream }} ·
+      {{ report.days_with_records }} attendance day{{ report.days_with_records|pluralize }}
+    </div>
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header card-body-section">
+        <strong>Students</strong>
+      </div>
+      <div class="card-body p-0">
+        {% if report.rows %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Adm No</th>
+                  <th>Student</th>
+                  <th class="text-center">Present</th>
+                  <th class="text-center">Late</th>
+                  <th class="text-center">Absent</th>
+                  <th class="text-center">Excused</th>
+                  <th class="text-center">Days</th>
+                  <th class="text-end">Attendance %</th>
+                  <th class="text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for entry in report.rows %}
+                  <tr>
+                    <td>{{ entry.student.admission_no }}</td>
+                    <td>
+                      <a href="{% url 'reports:student_report' entry.student.pk %}?term={{ term.pk }}">
+                        {{ entry.student.full_name }}
+                      </a>
+                    </td>
+                    <td class="text-center text-success">{{ entry.present }}</td>
+                    <td class="text-center text-warning">{{ entry.late }}</td>
+                    <td class="text-center text-danger">{{ entry.absent }}</td>
+                    <td class="text-center text-info">{{ entry.excused }}</td>
+                    <td class="text-center">{{ entry.recorded_days }}</td>
+                    <td class="text-end">
+                      {% if entry.percent is not None %}
+                        <strong>{{ entry.percent|floatformat:1 }}%</strong>
+                      {% else %}
+                        <span class="text-subtle">—</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      {% if entry.is_inactive %}
+                        <span class="badge bg-secondary">Inactive/Left</span>
+                      {% else %}
+                        <span class="badge bg-success">Active</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          {% include 'partials/empty_state.html' with message='No attendance has been recorded for this class in this term.' %}
+        {% endif %}
+      </div>
+    </div>
+
+    {% if report.daily %}
+      <div class="card card-body-section">
+        <div class="card-header card-body-section">
+          <strong>Daily roll-up</strong>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th class="text-center">Present</th>
+                  <th class="text-center">Late</th>
+                  <th class="text-center">Absent</th>
+                  <th class="text-center">Excused</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for day in report.daily %}
+                  <tr>
+                    <td>{{ day.date|date:'d M Y' }}</td>
+                    <td class="text-center">{{ day.PRESENT }}</td>
+                    <td class="text-center">{{ day.LATE }}</td>
+                    <td class="text-center">{{ day.ABSENT }}</td>
+                    <td class="text-center">{{ day.EXCUSED }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% include 'partials/empty_state.html' with message='Select a term and a class stream to generate the report.' %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}

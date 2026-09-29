@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Teachers - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Teachers</h1>
+      <p class="text-subtle mb-0">
+        {{ page_obj.paginator.count }} teacher{{ page_obj.paginator.count|pluralize }}
+      </p>
+    </div>
+    <a href="{% url 'teachers:add' %}" class="btn btn-primary">
+      <i class="bi bi-person-plus me-1"></i>Register Teacher
+    </a>
+  </div>
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-5">
+          <label class="form-label" for="{{ filter_form.q.id_for_label }}">Search</label>
+          {{ filter_form.q }}
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="{{ filter_form.department.id_for_label }}">Department</label>
+          {{ filter_form.department }}
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label" for="{{ filter_form.is_active.id_for_label }}">Status</label>
+          {{ filter_form.is_active }}
+        </div>
+        <div class="col-6 col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'teachers:list' %}" class="btn btn-outline-secondary" title="Clear filters">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if teachers %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Teacher</th>
+                <th>Employee No</th>
+                <th>Department</th>
+                <th>Assignments</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for teacher in teachers %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="user-avatar">{{ teacher.first_name|slice:":1"|upper }}</span>
+                      <div>
+                        <div class="fw-semibold">{{ teacher.full_name }}</div>
+                        <div class="text-subtle small">
+                          {{ teacher.get_gender_display }}
+                          {% if teacher.user %}
+                            &middot; {{ teacher.user.username }}
+                          {% else %}
+                            &middot; No user account
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="text-nowrap">{{ teacher.employee_no }}</td>
+                  <td>{{ teacher.department.name|default:"—" }}</td>
+                  <td>{{ teacher.assignments.count }} subject{{ teacher.assignments.count|pluralize }}</td>
+                  <td>
+                    {% if teacher.is_active %}
+                      <span class="badge rounded-pill bg-soft-success">Active</span>
+                    {% else %}
+                      <span class="badge rounded-pill bg-soft-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end text-nowrap">
+                    <a href="{% url 'teachers:detail' teacher.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'teachers:edit' teacher.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No teachers found. Try adjusting your filters or register a new teacher.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

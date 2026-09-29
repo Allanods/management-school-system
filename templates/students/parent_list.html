@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Parents - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Parents</h1>
+      <p class="text-subtle mb-0">
+        {{ page_obj.paginator.count }} parent{{ page_obj.paginator.count|pluralize }}
+      </p>
+    </div>
+    <a href="{% url 'students:parent_add' %}" class="btn btn-primary">
+      <i class="bi bi-person-plus me-1"></i>Add Parent
+    </a>
+  </div>
+
+  {% if unlinked_parent_count %}
+    <div class="alert alert-warning d-flex align-items-center gap-2 py-2">
+      <i class="bi bi-person-exclamation"></i>
+      <span>
+        {{ unlinked_parent_count }} parent{{ unlinked_parent_count|pluralize }} ha{{ unlinked_parent_count|pluralize:'s,' }} no user account yet.
+        <a href="{% url 'students:parent_list' %}?linked=unlinked">View them</a> to provision logins.
+      </span>
+    </div>
+  {% endif %}
+
+  <form method="get" class="card card-body-section mb-3">
+    <div class="card-body py-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-7">
+          <label class="form-label" for="id_q">Search</label>
+          <input type="text" name="q" id="id_q" class="form-control"
+                 value="{{ filter_q }}" placeholder="Search by first or last name">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="id_linked">User account</label>
+          <select name="linked" id="id_linked" class="form-select">
+            <option value="">All</option>
+            <option value="linked" {% if filter_linked == 'linked' %}selected{% endif %}>Linked</option>
+            <option value="unlinked" {% if filter_linked == 'unlinked' %}selected{% endif %}>Unlinked</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-funnel me-1"></i>Filter
+          </button>
+          <a href="{% url 'students:parent_list' %}" class="btn btn-outline-secondary" title="Clear filters">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if parents %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Parent</th>
+                <th>Contact</th>
+                <th>Children</th>
+                <th>User account</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for parent in parents %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="user-avatar">{{ parent.first_name|slice:":1"|upper }}</span>
+                      <div>
+                        <div class="fw-semibold">{{ parent.full_name }}</div>
+                        <div class="text-subtle small">{{ parent.occupation|default:"—" }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div>{{ parent.phone|default:"—" }}</div>
+                    <div class="text-subtle small">{{ parent.email|default:"—" }}</div>
+                  </td>
+                  <td>{{ parent.children_links.count }}</td>
+                  <td>
+                    {% if parent.user %}
+                      <a href="{% url 'accounts:user_detail' parent.user.pk %}" class="text-decoration-none">
+                        <span class="badge rounded-pill bg-soft-success">{{ parent.user.username }}</span>
+                      </a>
+                    {% else %}
+                      <span class="badge rounded-pill bg-soft-secondary">No account</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end text-nowrap">
+                    <a href="{% url 'students:parent_detail' parent.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'students:parent_edit' parent.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No parents found. Try adjusting your filters or add a new parent.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

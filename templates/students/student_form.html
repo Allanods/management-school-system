@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="page-title mb-0">{{ page_title }}</h1>
+    <a href="{% url 'students:list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>All students
+    </a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-person-lines-fill me-1"></i>Personal details
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.admission_no %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.first_name %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.middle_name %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.last_name %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.gender %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.date_of_birth %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-mortarboard me-1"></i>Admission
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.class_stream %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.date_admitted %}</div>
+          <div class="col-12 col-md-4">{% include 'partials/field.html' with field=form.status %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-telephone me-1"></i>Emergency contact
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">{% include 'partials/field.html' with field=form.contact_name %}</div>
+          <div class="col-12 col-md-6">{% include 'partials/field.html' with field=form.contact_phone %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-body-section mb-3">
+      <div class="card-header bg-transparent fw-semibold">
+        <i class="bi bi-people me-1"></i>Parents / Guardians
+      </div>
+      <div class="card-body">
+        {% if parent_formset %}
+          {{ parent_formset.management_form }}
+          {% for sform in parent_formset.forms %}
+            <div class="row g-2 align-items-end mb-3">
+              <div class="col-12 col-md-5">
+                <label class="form-label">Guardian</label>
+                {{ sform.parent }}
+                {% for error in sform.parent.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label">Relationship</label>
+                {{ sform.relationship }}
+              </div>
+              <div class="col-6 col-md-2">
+                {% if parent_formset.can_delete %}
+                  <label class="form-label d-block">&nbsp;</label>
+                  <label class="form-check-label d-flex align-items-center gap-2 text-subtle small pt-2">
+                    {{ sform.DELETE }} Remove
+                  </label>
+                {% endif %}
+              </div>
+              <input type="hidden" name="{{ sform.prefix }}-student" value="" disabled>
+              {{ sform.id }}
+            </div>
+          {% endfor %}
+          {% if parent_formset.non_form_errors %}
+            <div class="alert alert-danger py-2 mb-0">
+              {% for error in parent_formset.non_form_errors %}<div>{{ error }}</div>{% endfor %}
+            </div>
+          {% endif %}
+        {% endif %}
+
+        <button class="btn btn-sm btn-outline-primary" type="button"
+                data-bs-toggle="collapse" data-bs-target="#newGuardian" aria-expanded="false">
+          <i class="bi bi-person-plus me-1"></i>Create a new guardian
+        </button>
+
+        <div class="collapse mt-3" id="newGuardian">
+          <div class="border rounded-3 p-3 bg-light">
+            <h6 class="mb-3">New guardian details</h6>
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                {% include 'partials/field.html' with field=parent_create_form.first_name %}
+              </div>
+              <div class="col-12 col-md-4">
+                {% include 'partials/field.html' with field=parent_create_form.last_name %}
+              </div>
+              <div class="col-12 col-md-4">
+                {% include 'partials/field.html' with field=parent_create_form.phone %}
+              </div>
+              <div class="col-12 col-md-4">
+                {% include 'partials/field.html' with field=parent_create_form.email %}
+              </div>
+              <div class="col-12 col-md-4">
+                {% include 'partials/field.html' with field=parent_create_form.occupation %}
+              </div>
+            </div>
+            <button type="submit" name="parent_submit" value="1" class="btn btn-outline-primary">
+              <i class="bi bi-person-plus me-1"></i>Save guardian
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-lg me-1"></i>{% if is_create %}Register Student{% else %}Save Changes{% endif %}
+      </button>
+      <a href="{% url 'students:list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

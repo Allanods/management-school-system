@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Remove Assignment - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="page-title mb-0">Remove Assignment</h1>
+    <a href="{% url 'structure:assignment_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>All assignments
+    </a>
+  </div>
+
+  <div class="card card-body-section mb-3">
+    <div class="card-body">
+      <p class="fw-semibold mb-2">Are you sure you want to remove this assignment?</p>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="user-avatar">{{ assignment.teacher.first_name|slice:":1"|upper }}</span>
+        <div>
+          <div class="fw-semibold">{{ assignment.teacher.full_name }}</div>
+          <div class="text-subtle small">{{ assignment.class_stream }} &middot; {{ assignment.subject.name }}</div>
+        </div>
+      </div>
+      <p class="text-subtle small mb-0">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        The teacher will no longer be authorized to record marks for this subject in this stream.
+        Existing marks are preserved.
+      </p>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-danger px-4">
+        <i class="bi bi-trash me-1"></i>Remove Assignment
+      </button>
+      <a href="{% url 'structure:assignment_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

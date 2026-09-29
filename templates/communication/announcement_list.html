@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+      <h1 class="page-title mb-1">Announcements</h1>
+      <p class="text-subtle mb-0">School-wide notices for teachers and parents.</p>
+    </div>
+    {% if is_admin %}
+      <a href="{% url 'announcements:add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>New Announcement
+      </a>
+    {% endif %}
+  </div>
+
+  {% if is_admin %}
+    <form method="get" class="card card-body-section mb-3">
+      <div class="card-body py-3">
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-md-4">
+            <label class="form-label" for="id_q">Search</label>
+            <input type="text" name="q" id="id_q" class="form-control"
+                   value="{{ filters.q }}" placeholder="Title or message">
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="id_audience">Audience</label>
+            <select name="audience" id="id_audience" class="form-select">
+              <option value="">All audiences</option>
+              {% for value, label in audience_options %}
+                <option value="{{ value }}" {% if filters.audience == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label" for="id_status">Status</label>
+            <select name="status" id="id_status" class="form-select">
+              <option value="">All</option>
+              <option value="draft" {% if filters.status == 'draft' %}selected{% endif %}>Draft</option>
+              <option value="published" {% if filters.status == 'published' %}selected{% endif %}>Published</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-funnel"></i>
+            </button>
+            <a href="{% url 'announcements:list' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-lg"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </form>
+  {% endif %}
+
+  <div class="card card-body-section">
+    <div class="card-body p-0">
+      {% if page_obj.object_list %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Audience</th>
+                {% if is_admin %}<th>Status</th>{% endif %}
+                <th>Published</th>
+                <th>Posted by</th>
+                {% if is_admin %}<th class="text-end">Actions</th>{% endif %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for announcement in page_obj %}
+                <tr>
+                  <td class="fw-semibold">
+                    <a href="{% url 'announcements:detail' announcement.pk %}">{{ announcement.title }}</a>
+                  </td>
+                  <td>
+                    <span class="badge
+                      {% if announcement.audience == 'ALL' %}text-bg-info
+                      {% elif announcement.audience == 'TEACHERS' %}text-bg-primary
+                      {% else %}text-bg-success{% endif %}">
+                      {{ announcement.get_audience_display }}
+                    </span>
+                  </td>
+                  {% if is_admin %}
+                    <td>
+                      {% if announcement.published %}
+                        <span class="badge text-bg-success">Published</span>
+                      {% else %}
+                        <span class="badge text-bg-secondary">Draft</span>
+                      {% endif %}
+                    </td>
+                  {% endif %}
+                  <td>{{ announcement.published_at|date:'d M Y H:i'|default:'—' }}</td>
+                  <td>{{ announcement.created_by.get_full_name|default:announcement.created_by.username|default:'—' }}</td>
+                  {% if is_admin %}
+                    <td class="text-end text-nowrap">
+                      <a href="{% url 'announcements:detail' announcement.pk %}" class="btn btn-sm btn-outline-primary">
+                        View
+                      </a>
+                      <a href="{% url 'announcements:edit' announcement.pk %}" class="btn btn-sm btn-outline-secondary">
+                        Edit
+                      </a>
+                      {% if announcement.published %}
+                        <form method="post" action="{% url 'announcements:unpublish' announcement.pk %}" class="d-inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-sm btn-outline-warning">Unpublish</button>
+                        </form>
+                      {% else %}
+                        <form method="post" action="{% url 'announcements:publish' announcement.pk %}" class="d-inline">
+                          {% csrf_token %}
+                          <button type="submit" class="btn btn-sm btn-outline-success">Publish</button>
+                        </form>
+                      {% endif %}
+                    </td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% include 'partials/pagination.html' %}
+      {% else %}
+        {% include 'partials/empty_state.html' with message='No announcements match the current view.' %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

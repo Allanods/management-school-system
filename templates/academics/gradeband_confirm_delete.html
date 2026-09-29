@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Grade Band - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="page-title mb-0">Delete Grade Band</h1>
+    <a href="{% url 'academics:gradeband_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>All grade bands
+    </a>
+  </div>
+
+  <div class="card card-body-section mb-3">
+    <div class="card-body">
+      <p class="fw-semibold mb-2">
+        Delete grade band <span class="badge rounded-pill bg-soft-primary">{{ band.label }}</span>?
+      </p>
+      <p class="text-subtle small mb-0">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        Scores in the {{ band.min_percent }}%&ndash;{{ band.max_percent }}% range will no longer
+        receive a letter grade until a replacement band is added. Marked scores are preserved.
+      </p>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-danger px-4">
+        <i class="bi bi-trash me-1"></i>Delete Grade Band
+      </button>
+      <a href="{% url 'academics:gradeband_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

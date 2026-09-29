@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ page_title }} - SchoolManager{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <h1 class="page-title mb-1">Fees — My Children</h1>
+    <p class="text-subtle mb-0">Fee balances for your linked children.</p>
+  </div>
+
+  {% if students %}
+    <div class="row g-3">
+      {% for student in students %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="card card-body-section h-100">
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="user-avatar" style="width:48px;height:48px;">
+                  {{ student.first_name|slice:":1"|upper }}
+                </span>
+                <div>
+                  <h5 class="mb-0">{{ student.full_name }}</h5>
+                  <div class="text-subtle small">Adm. No. {{ student.admission_no }}</div>
+                </div>
+              </div>
+              <div class="text-subtle small mb-3">Class / Stream: {{ student.class_stream }}</div>
+              <div class="d-flex justify-content-between text-center mb-3">
+                <div>
+                  <div class="fs-5 fw-semibold">KSh {{ student.total_charged|floatformat:2 }}</div>
+                  <div class="text-subtle small">Charged</div>
+                </div>
+                <div>
+                  <div class="fs-5 fw-semibold text-success">KSh {{ student.total_paid|floatformat:2 }}</div>
+                  <div class="text-subtle small">Paid</div>
+                </div>
+                <div>
+                  <div class="fs-5 fw-semibold
+                    {% if student.balance > 0 %}text-danger
+                    {% elif student.balance < 0 %}text-success
+                    {% endif %}">KSh {{ student.balance|floatformat:2 }}</div>
+                  <div class="text-subtle small">Balance</div>
+                </div>
+              </div>
+              <a href="{% url 'fees:child_fees' student.pk %}{% if current_term %}?term={{ current_term.pk }}{% endif %}" class="btn btn-primary w-100">
+                <i class="bi bi-receipt me-1"></i>View fee statement
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card card-body-section">
+      <div class="card-body">
+        {% include 'partials/empty_state.html' with message='No children are linked to your account yet. Contact the school administrator.' %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
